@@ -1,19 +1,26 @@
 
 try:
     import pickle
+    import sys, os
     from kayako import Ticket, TicketAttachment, TicketNote, TicketPost, TicketPriority, TicketStatus, TicketType, TicketCount
     from kayako import KayakoAPI
 
+    path = str(sys.argv[0])
+    path = path.replace("tickets.py", '')
+    
+
     file = 'pickle.pk'
+    file = path + file
 
     first = False
     try:
         with open(file, 'rb') as fi:
             previous = pickle.load(fi)
     except:
-        first = True;
+        first = True
 
     APIKEYS = 'APIKEYS.TXT'
+    APIKEYS = path + APIKEYS
     ak = open(APIKEYS, 'r')
 
     lines = ak.readlines()
@@ -30,7 +37,9 @@ try:
     ticketcount = len(tickets)
     if first == True:
         previous = ticketcount
-    print ticketcount
+    print(ticketcount)
+    for n in range(ticketcount):
+        print(tickets[n])
 
     new = ''
     if ticketcount == previous + 1:
@@ -53,25 +62,25 @@ try:
         realbody= "%s new support tickets are available!" % new
 
     if ticketcount > previous:
-        
-        from twilio.rest import Client
+
+        from twilio.rest import TwilioRestClient
 
         account_sid = lines[3]
         auth_token  = lines[4]
 
-        client = Client(account_sid, auth_token)
+        client = TwilioRestClient(account_sid, auth_token)
 
-        message = client.messages.create(to= lines[5], 
-            from_= lines[6],
-            body=realbody)
-
-        print(message.sid)
+        message = client.messages.create(body=realbody,
+            to= lines[5],    
+            from_= lines[6]) 
+    
 
     with open(file, 'wb') as f:
-      pickle.dump(ticketcount, f)
+        pickle.dump(ticketcount, f)
 
     ak.close()
 except:
     pass
+    # ERROR
 
-    
+
